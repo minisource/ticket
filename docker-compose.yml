@@ -1,0 +1,63 @@
+services:
+  ticket-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticket-service
+    ports:
+      - "5011:5011"
+    environment:
+      - SERVER_PORT=5011
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=ticket_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - AUTH_URL=http://auth-service:5001
+      - AUTH_CLIENT_ID=ticket-service
+      - AUTH_CLIENT_SECRET=${AUTH_CLIENT_SECRET}
+      - NOTIFIER_URL=http://notifier-service:5003
+      - NOTIFIER_ENABLED=true
+      - LOG_LEVEL=info
+      - LOG_ENCODING=json
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - minisource-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7
+    container_name: ticket-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - ticket-mongodb-data:/data/db
+    networks:
+      - minisource-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticket-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - ticket-redis-data:/data
+    networks:
+      - minisource-network
+    restart: unless-stopped
+
+volumes:
+  ticket-mongodb-data:
+  ticket-redis-data:
+
+networks:
+  minisource-network:
+    external: true

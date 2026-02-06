@@ -1,0 +1,91 @@
+{
+  "common": {
+    "success": "Operation completed successfully",
+    "created": "Created successfully",
+    "updated": "Updated successfully",
+    "deleted": "Deleted successfully"
+  },
+  "error": {
+    "tenant_required": "Tenant ID is required",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "invalid_token": "Invalid or expired token",
+    "invalid_request_body": "Invalid request body",
+    "not_found": "Resource not found",
+    "rate_limit_exceeded": "Rate limit exceeded. Please try again later",
+    "internal_error": "Internal server error"
+  },
+  "ticket": {
+    "created": "Ticket created successfully",
+    "updated": "Ticket updated successfully",
+    "deleted": "Ticket deleted successfully",
+    "not_found": "Ticket not found",
+    "status_changed": "Ticket status changed successfully",
+    "assigned": "Ticket assigned successfully",
+    "transferred": "Ticket transferred successfully",
+    "rated": "Ticket rated successfully",
+    "message_added": "Message added successfully",
+    "invalid_status_transition": "Invalid status transition",
+    "already_assigned": "Ticket is already assigned to this agent",
+    "cannot_delete_open": "Cannot delete an open ticket",
+    "bulk_assigned": "{{count}} tickets assigned successfully",
+    "bulk_status_changed": "{{count}} tickets status changed successfully",
+    "bulk_priority_changed": "{{count}} tickets priority changed successfully",
+    "bulk_transferred": "{{count}} tickets transferred successfully",
+    "bulk_deleted": "{{count}} tickets deleted successfully"
+  },
+  "agent": {
+    "created": "Agent created successfully",
+    "updated": "Agent updated successfully",
+    "deleted": "Agent deleted successfully",
+    "not_found": "Agent not found",
+    "status_updated": "Agent status updated successfully",
+    "already_exists": "Agent already exists",
+    "has_open_tickets": "Cannot delete agent with open tickets"
+  },
+  "department": {
+    "created": "Department created successfully",
+    "updated": "Department updated successfully",
+    "deleted": "Department deleted successfully",
+    "not_found": "Department not found",
+    "agent_added": "Agent added to department successfully",
+    "agent_removed": "Agent removed from department successfully",
+    "has_open_tickets": "Cannot delete department with open tickets"
+  },
+  "category": {
+    "created": "Category created successfully",
+    "updated": "Category updated successfully",
+    "deleted": "Category deleted successfully",
+    "not_found": "Category not found"
+  },
+  "sla": {
+    "created": "SLA policy created successfully",
+    "updated": "SLA policy updated successfully",
+    "deleted": "SLA policy deleted successfully",
+    "not_found": "SLA policy not found",
+    "cannot_delete_default": "Cannot delete default SLA policy"
+  },
+  "canned_response": {
+    "created": "Canned response created successfully",
+    "updated": "Canned response updated successfully",
+    "deleted": "Canned response deleted successfully",
+    "not_found": "Canned response not found"
+  },
+  "notification": {
+    "ticket_created": "New ticket #{{ticket_number}} has been created",
+    "ticket_assigned": "Ticket #{{ticket_number}} has been assigned to you",
+    "ticket_updated": "Ticket #{{ticket_number}} has been updated",
+    "ticket_resolved": "Ticket #{{ticket_number}} has been resolved",
+    "new_message": "New message on ticket #{{ticket_number}}",
+    "sla_warning": "Ticket #{{ticket_number}} is approaching SLA deadline",
+    "sla_breached": "Ticket #{{ticket_number}} has breached SLA"
+  },
+  "validation": {
+    "required": "{{field}} is required",
+    "min_length": "{{field}} must be at least {{min}} characters",
+    "max_length": "{{field}} must be at most {{max}} characters",
+    "invalid_email": "Invalid email address",
+    "invalid_priority": "Invalid priority value",
+    "invalid_status": "Invalid status value"
+  }
+}

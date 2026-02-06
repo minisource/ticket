@@ -1,0 +1,91 @@
+{
+  "common": {
+    "success": "عملیات با موفقیت انجام شد",
+    "created": "با موفقیت ایجاد شد",
+    "updated": "با موفقیت به‌روزرسانی شد",
+    "deleted": "با موفقیت حذف شد"
+  },
+  "error": {
+    "tenant_required": "شناسه تنانت الزامی است",
+    "unauthorized": "دسترسی غیرمجاز",
+    "forbidden": "دسترسی ممنوع",
+    "invalid_token": "توکن نامعتبر یا منقضی شده",
+    "invalid_request_body": "بدنه درخواست نامعتبر است",
+    "not_found": "منبع یافت نشد",
+    "rate_limit_exceeded": "محدودیت درخواست. لطفاً بعداً تلاش کنید",
+    "internal_error": "خطای سرور داخلی"
+  },
+  "ticket": {
+    "created": "تیکت با موفقیت ایجاد شد",
+    "updated": "تیکت با موفقیت به‌روزرسانی شد",
+    "deleted": "تیکت با موفقیت حذف شد",
+    "not_found": "تیکت یافت نشد",
+    "status_changed": "وضعیت تیکت با موفقیت تغییر کرد",
+    "assigned": "تیکت با موفقیت تخصیص داده شد",
+    "transferred": "تیکت با موفقیت انتقال یافت",
+    "rated": "تیکت با موفقیت امتیازدهی شد",
+    "message_added": "پیام با موفقیت اضافه شد",
+    "invalid_status_transition": "تغییر وضعیت نامعتبر",
+    "already_assigned": "تیکت قبلاً به این کارشناس تخصیص داده شده",
+    "cannot_delete_open": "امکان حذف تیکت باز وجود ندارد",
+    "bulk_assigned": "{{count}} تیکت با موفقیت تخصیص داده شد",
+    "bulk_status_changed": "وضعیت {{count}} تیکت با موفقیت تغییر کرد",
+    "bulk_priority_changed": "اولویت {{count}} تیکت با موفقیت تغییر کرد",
+    "bulk_transferred": "{{count}} تیکت با موفقیت انتقال یافت",
+    "bulk_deleted": "{{count}} تیکت با موفقیت حذف شد"
+  },
+  "agent": {
+    "created": "کارشناس با موفقیت ایجاد شد",
+    "updated": "کارشناس با موفقیت به‌روزرسانی شد",
+    "deleted": "کارشناس با موفقیت حذف شد",
+    "not_found": "کارشناس یافت نشد",
+    "status_updated": "وضعیت کارشناس با موفقیت به‌روزرسانی شد",
+    "already_exists": "کارشناس از قبل وجود دارد",
+    "has_open_tickets": "امکان حذف کارشناس با تیکت‌های باز وجود ندارد"
+  },
+  "department": {
+    "created": "دپارتمان با موفقیت ایجاد شد",
+    "updated": "دپارتمان با موفقیت به‌روزرسانی شد",
+    "deleted": "دپارتمان با موفقیت حذف شد",
+    "not_found": "دپارتمان یافت نشد",
+    "agent_added": "کارشناس با موفقیت به دپارتمان اضافه شد",
+    "agent_removed": "کارشناس با موفقیت از دپارتمان حذف شد",
+    "has_open_tickets": "امکان حذف دپارتمان با تیکت‌های باز وجود ندارد"
+  },
+  "category": {
+    "created": "دسته‌بندی با موفقیت ایجاد شد",
+    "updated": "دسته‌بندی با موفقیت به‌روزرسانی شد",
+    "deleted": "دسته‌بندی با موفقیت حذف شد",
+    "not_found": "دسته‌بندی یافت نشد"
+  },
+  "sla": {
+    "created": "سیاست SLA با موفقیت ایجاد شد",
+    "updated": "سیاست SLA با موفقیت به‌روزرسانی شد",
+    "deleted": "سیاست SLA با موفقیت حذف شد",
+    "not_found": "سیاست SLA یافت نشد",
+    "cannot_delete_default": "امکان حذف سیاست SLA پیش‌فرض وجود ندارد"
+  },
+  "canned_response": {
+    "created": "پاسخ آماده با موفقیت ایجاد شد",
+    "updated": "پاسخ آماده با موفقیت به‌روزرسانی شد",
+    "deleted": "پاسخ آماده با موفقیت حذف شد",
+    "not_found": "پاسخ آماده یافت نشد"
+  },
+  "notification": {
+    "ticket_created": "تیکت جدید #{{ticket_number}} ایجاد شد",
+    "ticket_assigned": "تیکت #{{ticket_number}} به شما تخصیص داده شد",
+    "ticket_updated": "تیکت #{{ticket_number}} به‌روزرسانی شد",
+    "ticket_resolved": "تیکت #{{ticket_number}} حل شد",
+    "new_message": "پیام جدید در تیکت #{{ticket_number}}",
+    "sla_warning": "تیکت #{{ticket_number}} به مهلت SLA نزدیک می‌شود",
+    "sla_breached": "تیکت #{{ticket_number}} از مهلت SLA عبور کرده است"
+  },
+  "validation": {
+    "required": "{{field}} الزامی است",
+    "min_length": "{{field}} باید حداقل {{min}} کاراکتر باشد",
+    "max_length": "{{field}} باید حداکثر {{max}} کاراکتر باشد",
+    "invalid_email": "آدرس ایمیل نامعتبر است",
+    "invalid_priority": "مقدار اولویت نامعتبر است",
+    "invalid_status": "مقدار وضعیت نامعتبر است"
+  }
+}

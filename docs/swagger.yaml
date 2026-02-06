@@ -1,0 +1,1478 @@
+basePath: /api/v1
+definitions:
+  handlers.ErrorInfo:
+    properties:
+      code:
+        type: string
+      details:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      validation:
+        items:
+          $ref: '#/definitions/handlers.ValidationError'
+        type: array
+    type: object
+  handlers.HealthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+    type: object
+  handlers.Meta:
+    properties:
+      requestId:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  handlers.Pagination:
+    properties:
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      totalItems:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  handlers.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/handlers.ErrorInfo'
+      meta:
+        $ref: '#/definitions/handlers.Meta'
+      pagination:
+        $ref: '#/definitions/handlers.Pagination'
+      success:
+        type: boolean
+      traceId:
+        type: string
+    type: object
+  handlers.ValidationError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  models.AssignTicketRequest:
+    properties:
+      assigneeId:
+        type: string
+      comment:
+        type: string
+    required:
+    - assigneeId
+    type: object
+  models.Attachment:
+    properties:
+      id:
+        type: string
+      mimeType:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      uploadedAt:
+        type: string
+      uploadedBy:
+        type: string
+      url:
+        type: string
+    type: object
+  models.AttachmentInput:
+    properties:
+      mimeType:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    required:
+    - name
+    - url
+    type: object
+  models.ChangeStatusRequest:
+    properties:
+      comment:
+        type: string
+      status:
+        $ref: '#/definitions/models.TicketStatus'
+    required:
+    - status
+    type: object
+  models.CreateMessageRequest:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/models.AttachmentInput'
+        type: array
+      content:
+        maxLength: 10000
+        minLength: 1
+        type: string
+      isPrivate:
+        type: boolean
+      type:
+        $ref: '#/definitions/models.MessageType'
+    required:
+    - content
+    type: object
+  models.CreateTicketRequest:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/models.AttachmentInput'
+        type: array
+      categoryId:
+        type: string
+      ccEmails:
+        items:
+          type: string
+        type: array
+      customFields:
+        additionalProperties: true
+        type: object
+      departmentId:
+        type: string
+      description:
+        maxLength: 10000
+        minLength: 10
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      priority:
+        $ref: '#/definitions/models.TicketPriority'
+      source:
+        $ref: '#/definitions/models.TicketSource'
+      subject:
+        maxLength: 200
+        minLength: 5
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      tenantId:
+        type: string
+      type:
+        $ref: '#/definitions/models.TicketType'
+    required:
+    - description
+    - subject
+    - type
+    type: object
+  models.MessageType:
+    enum:
+    - reply
+    - internal_note
+    - system
+    - auto_reply
+    type: string
+    x-enum-comments:
+      MessageTypeAutoReply: Auto-generated reply
+      MessageTypeInternalNote: Internal note (agents only)
+      MessageTypeReply: Public reply
+      MessageTypeSystem: System generated message
+    x-enum-descriptions:
+    - Public reply
+    - Internal note (agents only)
+    - System generated message
+    - Auto-generated reply
+    x-enum-varnames:
+    - MessageTypeReply
+    - MessageTypeInternalNote
+    - MessageTypeSystem
+    - MessageTypeAutoReply
+  models.RateTicketRequest:
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  models.SenderType:
+    enum:
+    - customer
+    - agent
+    - system
+    - bot
+    type: string
+    x-enum-varnames:
+    - SenderCustomer
+    - SenderAgent
+    - SenderSystem
+    - SenderBot
+  models.Ticket:
+    properties:
+      assignedAt:
+        type: string
+      assignedById:
+        type: string
+      assignedToEmail:
+        type: string
+      assignedToId:
+        description: Assignment
+        type: string
+      assignedToName:
+        type: string
+      attachments:
+        description: Attachments & Tags
+        items:
+          $ref: '#/definitions/models.Attachment'
+        type: array
+      categoryId:
+        type: string
+      categoryName:
+        type: string
+      ccEmails:
+        items:
+          type: string
+        type: array
+      closedAt:
+        type: string
+      createdAt:
+        description: Timestamps
+        type: string
+      customFields:
+        additionalProperties: true
+        type: object
+      customerAvatar:
+        type: string
+      customerEmail:
+        type: string
+      customerId:
+        description: Customer Info
+        type: string
+      customerName:
+        type: string
+      customerPhone:
+        type: string
+      deletedAt:
+        type: string
+      deletedBy:
+        type: string
+      departmentId:
+        description: Organization
+        type: string
+      departmentName:
+        type: string
+      description:
+        type: string
+      escalationLevel:
+        type: integer
+      firstResponseDue:
+        type: string
+      firstResponsedAt:
+        type: string
+      id:
+        type: string
+      internalNotes:
+        type: integer
+      isDeleted:
+        type: boolean
+      lastActivityAt:
+        description: Last Activity
+        type: string
+      lastAgentReplyAt:
+        type: string
+      lastCustomerReplyAt:
+        type: string
+      mergedIntoId:
+        type: string
+      mergedTicketIds:
+        items:
+          type: string
+        type: array
+      messageCount:
+        description: Stats
+        type: integer
+      metadata:
+        additionalProperties: true
+        type: object
+      parentTicketId:
+        description: Related
+        type: string
+      priority:
+        $ref: '#/definitions/models.TicketPriority'
+      ratedAt:
+        type: string
+      relatedTicketIds:
+        items:
+          type: string
+        type: array
+      reopenCount:
+        type: integer
+      resolutionDue:
+        type: string
+      resolveSlaBreached:
+        type: boolean
+      resolvedAt:
+        type: string
+      responseSlaBreached:
+        type: boolean
+      satisfactionComment:
+        type: string
+      satisfactionRating:
+        description: Rating
+        type: integer
+      slaBreached:
+        type: boolean
+      slaPolicyId:
+        description: SLA
+        type: string
+      source:
+        $ref: '#/definitions/models.TicketSource'
+      status:
+        $ref: '#/definitions/models.TicketStatus'
+      subcategoryId:
+        type: string
+      subcategoryName:
+        type: string
+      subject:
+        description: Basic Info
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      teamId:
+        type: string
+      teamName:
+        type: string
+      tenantId:
+        type: string
+      ticketNumber:
+        description: Human-readable ticket number
+        type: string
+      type:
+        $ref: '#/definitions/models.TicketType'
+      updatedAt:
+        type: string
+      watcherIds:
+        description: Watchers
+        items:
+          type: string
+        type: array
+    type: object
+  models.TicketHistory:
+    properties:
+      action:
+        description: created, updated, assigned, status_changed, etc.
+        type: string
+      changedBy:
+        type: string
+      changedByName:
+        type: string
+      comment:
+        type: string
+      createdAt:
+        type: string
+      field:
+        type: string
+      id:
+        type: string
+      newValue: {}
+      oldValue: {}
+      tenantId:
+        type: string
+      ticketId:
+        type: string
+    type: object
+  models.TicketMessage:
+    properties:
+      attachments:
+        description: Attachments
+        items:
+          $ref: '#/definitions/models.Attachment'
+        type: array
+      content:
+        type: string
+      contentHtml:
+        type: string
+      createdAt:
+        description: Timestamps
+        type: string
+      deletedAt:
+        type: string
+      deletedBy:
+        type: string
+      editedAt:
+        type: string
+      editedBy:
+        type: string
+      emailCc:
+        items:
+          type: string
+        type: array
+      emailFrom:
+        type: string
+      emailHeaders:
+        additionalProperties:
+          type: string
+        type: object
+      emailMessageId:
+        description: Email Info (for messages from email)
+        type: string
+      emailTo:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      isDeleted:
+        type: boolean
+      isEdited:
+        description: Editing
+        type: boolean
+      isPrivate:
+        description: Visibility
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      senderAvatar:
+        type: string
+      senderEmail:
+        type: string
+      senderId:
+        type: string
+      senderName:
+        type: string
+      senderType:
+        allOf:
+        - $ref: '#/definitions/models.SenderType'
+        description: Sender Info
+      tenantId:
+        type: string
+      ticketId:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/models.MessageType'
+        description: Message Content
+    type: object
+  models.TicketPriority:
+    enum:
+    - low
+    - medium
+    - high
+    - urgent
+    - critical
+    type: string
+    x-enum-varnames:
+    - PriorityLow
+    - PriorityMedium
+    - PriorityHigh
+    - PriorityUrgent
+    - PriorityCritical
+  models.TicketSource:
+    enum:
+    - web
+    - email
+    - api
+    - phone
+    - chat
+    - mobile
+    - internal
+    type: string
+    x-enum-varnames:
+    - SourceWeb
+    - SourceEmail
+    - SourceAPI
+    - SourcePhone
+    - SourceChat
+    - SourceMobile
+    - SourceInternal
+  models.TicketStats:
+    properties:
+      avgResolutionTime:
+        description: in minutes
+        type: integer
+      avgResponseTime:
+        description: in minutes
+        type: integer
+      avgSatisfaction:
+        type: number
+      byDepartment:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      byPriority:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      byType:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      closedTickets:
+        type: integer
+      openTickets:
+        type: integer
+      pendingTickets:
+        type: integer
+      resolvedTickets:
+        type: integer
+      slaBreached:
+        type: integer
+      totalTickets:
+        type: integer
+      unassignedTickets:
+        type: integer
+    type: object
+  models.TicketStatus:
+    enum:
+    - open
+    - in_progress
+    - pending
+    - on_hold
+    - resolved
+    - closed
+    - reopened
+    - escalated
+    - cancelled
+    type: string
+    x-enum-comments:
+      StatusCancelled: Cancelled by customer or agent
+      StatusClosed: Ticket closed
+      StatusEscalated: Escalated to higher level
+      StatusOnHold: Temporarily paused
+      StatusPending: Waiting for customer response
+      StatusReopened: Reopened by customer
+      StatusResolved: Solution provided
+    x-enum-descriptions:
+    - ""
+    - ""
+    - Waiting for customer response
+    - Temporarily paused
+    - Solution provided
+    - Ticket closed
+    - Reopened by customer
+    - Escalated to higher level
+    - Cancelled by customer or agent
+    x-enum-varnames:
+    - StatusOpen
+    - StatusInProgress
+    - StatusPending
+    - StatusOnHold
+    - StatusResolved
+    - StatusClosed
+    - StatusReopened
+    - StatusEscalated
+    - StatusCancelled
+  models.TicketType:
+    enum:
+    - question
+    - incident
+    - problem
+    - feature_request
+    - bug
+    - task
+    - complaint
+    - feedback
+    type: string
+    x-enum-varnames:
+    - TypeQuestion
+    - TypeIncident
+    - TypeProblem
+    - TypeFeature
+    - TypeBug
+    - TypeTask
+    - TypeComplaint
+    - TypeFeedback
+  models.TransferTicketRequest:
+    properties:
+      assigneeId:
+        type: string
+      comment:
+        type: string
+      departmentId:
+        type: string
+    required:
+    - departmentId
+    type: object
+  models.UpdateTicketRequest:
+    properties:
+      categoryId:
+        type: string
+      ccEmails:
+        items:
+          type: string
+        type: array
+      customFields:
+        additionalProperties: true
+        type: object
+      departmentId:
+        type: string
+      description:
+        maxLength: 10000
+        minLength: 10
+        type: string
+      priority:
+        $ref: '#/definitions/models.TicketPriority'
+      subject:
+        maxLength: 200
+        minLength: 5
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      type:
+        $ref: '#/definitions/models.TicketType'
+    type: object
+host: localhost:5011
+info:
+  contact:
+    email: support@minisource.com
+    name: API Support
+  description: Customer Support Ticket Management Service for Minisource
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Ticket Service API
+  version: "1.0"
+paths:
+  /api/v1/agent/tickets/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Update a ticket as agent
+      tags:
+      - Agent
+  /api/v1/agent/tickets/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Assign data
+        in: body
+        name: assign
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Assign ticket to agent
+      tags:
+      - Agent
+  /api/v1/agent/tickets/{id}/messages:
+    get:
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.TicketMessage'
+                  type: array
+              type: object
+      summary: Get ticket messages as agent
+      tags:
+      - Agent
+  /api/v1/agent/tickets/{id}/reply:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Message data
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TicketMessage'
+              type: object
+      summary: Add a reply as an agent
+      tags:
+      - Agent
+  /api/v1/agent/tickets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status data
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Change ticket status as agent
+      tags:
+      - Agent
+  /api/v1/agent/tickets/{id}/transfer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Transfer data
+        in: body
+        name: transfer
+        required: true
+        schema:
+          $ref: '#/definitions/models.TransferTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Transfer ticket to department
+      tags:
+      - Agent
+  /api/v1/agent/tickets/my:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Ticket'
+                  type: array
+              type: object
+      summary: Get my assigned tickets
+      tags:
+      - Agent
+  /api/v1/agents/{agent_id}/tickets:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Agent ID
+        in: path
+        name: agent_id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Ticket'
+                  type: array
+              type: object
+      summary: Get tickets for an agent
+      tags:
+      - Tickets
+  /api/v1/customers/{customer_id}/tickets:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Ticket'
+                  type: array
+              type: object
+      summary: Get tickets for a customer
+      tags:
+      - Tickets
+  /api/v1/tickets:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Status filter (comma-separated)
+        in: query
+        name: status
+        type: string
+      - description: Priority filter (comma-separated)
+        in: query
+        name: priority
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Ticket'
+                  type: array
+              type: object
+      summary: List tickets
+      tags:
+      - Tickets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Create a new ticket
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}:
+    delete:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Delete a ticket
+      tags:
+      - Tickets
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get a ticket by ID
+      tags:
+      - Tickets
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Update a ticket
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}/history:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.TicketHistory'
+                  type: array
+              type: object
+      summary: Get ticket history
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}/messages:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.TicketMessage'
+                  type: array
+              type: object
+      summary: Get ticket messages
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}/rate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Rating data
+        in: body
+        name: rating
+        required: true
+        schema:
+          $ref: '#/definitions/models.RateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Rate a ticket
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}/reply:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Message data
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TicketMessage'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Add a reply to a ticket
+      tags:
+      - Tickets
+  /api/v1/tickets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status data
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+      summary: Change ticket status
+      tags:
+      - Tickets
+  /api/v1/tickets/my:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Ticket'
+                  type: array
+              type: object
+      summary: Get my tickets
+      tags:
+      - Tickets
+  /api/v1/tickets/number/{number}:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Ticket Number
+        in: path
+        name: number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Ticket'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get a ticket by number
+      tags:
+      - Tickets
+  /api/v1/tickets/stats:
+    get:
+      parameters:
+      - description: Tenant ID
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TicketStats'
+              type: object
+      summary: Get ticket statistics
+      tags:
+      - Tickets
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Health check
+      tags:
+      - Health
+  /live:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Liveness check
+      tags:
+      - Health
+  /ready:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Readiness check
+      tags:
+      - Health
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Customer ticket operations
+  name: Tickets
+- description: Agent operations for handling tickets
+  name: Agent
+- description: Administrative operations for ticket system
+  name: Admin
