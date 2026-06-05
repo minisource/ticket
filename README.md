@@ -188,16 +188,27 @@ make dev
 
 ### Docker
 
+Images are published to [Docker Hub](https://hub.docker.com/orgs/minisource/repositories) on every successful build to `main`.
+
+| Image | Tags |
+|-------|------|
+| `minisource/ticket` | `latest`, commit SHA |
+
 ```bash
-# Start development environment
+# Production (pre-built image)
+export TAG=latest
+docker compose -f docker-compose.prod.yml up -d
+
+# Development
 make docker-dev-up
-
-# View logs
 make docker-logs
-
-# Stop containers
 make docker-dev-down
 ```
+
+### GitHub Actions secrets
+
+- `DOCKERHUB_USERNAME` — Docker Hub username
+- `DOCKERHUB_TOKEN` — Docker Hub access token
 
 ### Testing
 

@@ -57,9 +57,9 @@ func (u *AdminUsecase) CreateAgent(ctx context.Context, tenantID string, req mod
 		return nil, errors.New("user_id, name, and email are required")
 	}
 
-	// Check if agent already exists
-	existing, _ := u.agentRepo.GetByUserID(ctx, tenantID, req.UserID)
-	if existing != nil {
+	// Check if agent already exists (including soft-deleted)
+	existing, _ := u.agentRepo.GetByUserIDIncludeDeleted(ctx, tenantID, req.UserID)
+	if existing != nil && !existing.IsDeleted {
 		return nil, errors.New("agent already exists")
 	}
 
@@ -95,6 +95,17 @@ func (u *AdminUsecase) CreateAgent(ctx context.Context, tenantID string, req mod
 		if err == nil {
 			agent.DepartmentIDs = append(agent.DepartmentIDs, objID)
 		}
+	}
+
+	if existing != nil && existing.IsDeleted {
+		if err := u.agentRepo.ReactivateAgent(ctx, existing.ID, agent); err != nil {
+			return nil, err
+		}
+		reactivated, err := u.agentRepo.GetByID(ctx, existing.ID)
+		if err != nil {
+			return nil, err
+		}
+		return reactivated, nil
 	}
 
 	if err := u.agentRepo.Create(ctx, agent); err != nil {
@@ -219,13 +230,21 @@ func (u *AdminUsecase) ListAgents(ctx context.Context, tenantID string, activeOn
 	return u.agentRepo.List(ctx, tenantID, activeOnly)
 }
 
-// UpdateAgentStatus updates an agent's status
+// UpdateAgentStatus updates an agent's status by user ID within a tenant.
 func (u *AdminUsecase) UpdateAgentStatus(ctx context.Context, tenantID, userID string, status models.AgentStatus) error {
 	agent, err := u.agentRepo.GetByUserID(ctx, tenantID, userID)
 	if err != nil || agent == nil {
 		return errors.New("agent not found")
 	}
 
+	return u.agentRepo.UpdateStatus(ctx, agent.ID, status)
+}
+
+// UpdateAgentStatusForAgent updates status for an already-loaded agent record.
+func (u *AdminUsecase) UpdateAgentStatusForAgent(ctx context.Context, agent *models.Agent, status models.AgentStatus) error {
+	if agent == nil {
+		return errors.New("agent not found")
+	}
 	return u.agentRepo.UpdateStatus(ctx, agent.ID, status)
 }
 

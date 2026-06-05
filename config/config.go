@@ -62,6 +62,7 @@ type NotifierConfig struct {
 	ServiceURL   string
 	ClientID     string
 	ClientSecret string
+	AdminUserID  string
 	Enabled      bool
 }
 
@@ -129,9 +130,10 @@ func Load() (*Config, error) {
 			SkipPaths:         getEnvAsSlice("AUTH_SKIP_PATHS", []string{"/health", "/ready", "/metrics"}),
 		},
 		Notifier: NotifierConfig{
-			ServiceURL:   getEnv("NOTIFIER_SERVICE_URL", "http://localhost:5003"),
+			ServiceURL:   getEnv("NOTIFIER_SERVICE_URL", "http://localhost:9002"),
 			ClientID:     getEnv("NOTIFIER_CLIENT_ID", "ticket-service"),
 			ClientSecret: getEnv("NOTIFIER_CLIENT_SECRET", "ticket-service-secret-key"),
+			AdminUserID:  getEnv("NOTIFIER_ADMIN_USER_ID", ""),
 			Enabled:      getEnvAsBool("NOTIFIER_ENABLED", true),
 		},
 		SLA: SLAConfig{

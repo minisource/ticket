@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +12,20 @@ import (
 	"github.com/minisource/ticket/internal/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+// NotifierClient sends in-app notifications via the Notifier service.
+type NotifierClient interface {
+	SendNotification(ctx context.Context, notification NotificationRequest) error
+}
+
+// NotificationRequest represents a notification to send.
+type NotificationRequest struct {
+	Type       string
+	Recipients []string
+	Title      string
+	Body       string
+	Data       map[string]string
+}
 
 // TicketUsecase handles ticket business logic
 type TicketUsecase struct {
@@ -22,6 +37,7 @@ type TicketUsecase struct {
 	agentRepo      *repository.AgentRepository
 	slaRepo        *repository.SLAPolicyRepository
 	config         *config.Config
+	notifier       NotifierClient
 }
 
 // NewTicketUsecase creates a new ticket usecase
@@ -34,6 +50,7 @@ func NewTicketUsecase(
 	agentRepo *repository.AgentRepository,
 	slaRepo *repository.SLAPolicyRepository,
 	cfg *config.Config,
+	notifier NotifierClient,
 ) *TicketUsecase {
 	return &TicketUsecase{
 		ticketRepo:     ticketRepo,
@@ -44,6 +61,7 @@ func NewTicketUsecase(
 		agentRepo:      agentRepo,
 		slaRepo:        slaRepo,
 		config:         cfg,
+		notifier:       notifier,
 	}
 }
 
@@ -153,7 +171,49 @@ func (u *TicketUsecase) CreateTicket(ctx context.Context, req models.CreateTicke
 		u.autoAssign(ctx, ticket)
 	}
 
+	u.sendNewTicketNotification(ticket)
+
 	return ticket, nil
+}
+
+func (u *TicketUsecase) sendNewTicketNotification(ticket *models.Ticket) {
+	if u.notifier == nil || !u.config.Notifier.Enabled || u.config.Notifier.AdminUserID == "" {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	recipients := []string{u.config.Notifier.AdminUserID}
+	if ticket.CustomerID != "" {
+		recipients = append(recipients, ticket.CustomerID)
+	}
+
+	notification := NotificationRequest{
+		Type:       "ticket.new",
+		Recipients: recipients,
+		Title:      "New Support Ticket",
+		Body:       truncateTicketText(ticket.Subject, 100),
+		Data: map[string]string{
+			"ticket_id":     ticket.ID.Hex(),
+			"ticket_number": ticket.TicketNumber,
+			"tenant_id":     ticket.TenantID,
+			"customer_id":   ticket.CustomerID,
+			"priority":      string(ticket.Priority),
+			"status":        string(ticket.Status),
+		},
+	}
+
+	if err := u.notifier.SendNotification(ctx, notification); err != nil {
+		log.Printf("Failed to send ticket notification: %v", err)
+	}
+}
+
+func truncateTicketText(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
 }
 
 // GetTicket gets a ticket by ID
@@ -297,9 +357,10 @@ func (u *TicketUsecase) ChangeStatus(ctx context.Context, id string, req models.
 	case models.StatusResolved:
 		ticket.ResolvedAt = &now
 		if ticket.AssignedToID != "" {
-			agentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-			_ = u.agentRepo.IncrementResolved(ctx, agentID)
-			_ = u.agentRepo.DecrementTicketCount(ctx, agentID)
+			if agent := u.agentByAssigneeID(ctx, ticket.TenantID, ticket.AssignedToID); agent != nil {
+				_ = u.agentRepo.IncrementResolved(ctx, agent.ID)
+				_ = u.agentRepo.DecrementTicketCount(ctx, agent.ID)
+			}
 		}
 		if ticket.DepartmentID != nil {
 			_ = u.departmentRepo.DecrementOpenTickets(ctx, *ticket.DepartmentID)
@@ -308,8 +369,7 @@ func (u *TicketUsecase) ChangeStatus(ctx context.Context, id string, req models.
 		ticket.ClosedAt = &now
 		if oldStatus != models.StatusResolved {
 			if ticket.AssignedToID != "" {
-				agentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-				_ = u.agentRepo.DecrementTicketCount(ctx, agentID)
+				u.decrementAgentTicketCount(ctx, ticket.TenantID, ticket.AssignedToID)
 			}
 			if ticket.DepartmentID != nil {
 				_ = u.departmentRepo.DecrementOpenTickets(ctx, *ticket.DepartmentID)
@@ -356,8 +416,7 @@ func (u *TicketUsecase) AssignTicket(ctx context.Context, id string, req models.
 
 	// Update old assignee
 	if ticket.AssignedToID != "" {
-		oldAgentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-		_ = u.agentRepo.DecrementTicketCount(ctx, oldAgentID)
+		u.decrementAgentTicketCount(ctx, ticket.TenantID, ticket.AssignedToID)
 	}
 
 	oldAssignee := ticket.AssignedToName
@@ -417,8 +476,7 @@ func (u *TicketUsecase) TransferTicket(ctx context.Context, id string, req model
 
 	// Remove old assignee
 	if ticket.AssignedToID != "" {
-		oldAgentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-		_ = u.agentRepo.DecrementTicketCount(ctx, oldAgentID)
+		u.decrementAgentTicketCount(ctx, ticket.TenantID, ticket.AssignedToID)
 	}
 
 	ticket.DepartmentID = &deptID
@@ -548,10 +606,8 @@ func (u *TicketUsecase) RateTicket(ctx context.Context, id string, req models.Ra
 
 	// Update agent rating
 	if ticket.AssignedToID != "" {
-		// Calculate new average rating (simplified - in production, use proper aggregation)
-		agentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-		agent, _ := u.agentRepo.GetByID(ctx, agentID)
-		if agent != nil {
+		agent := u.agentByAssigneeID(ctx, ticket.TenantID, ticket.AssignedToID)
+		if agent != nil && agent.TotalResolved > 0 {
 			newAvg := (agent.AvgRating*float64(agent.TotalResolved-1) + float64(req.Rating)) / float64(agent.TotalResolved)
 			agent.AvgRating = newAvg
 			_ = u.agentRepo.Update(ctx, agent)
@@ -608,8 +664,7 @@ func (u *TicketUsecase) DeleteTicket(ctx context.Context, id string, deletedBy s
 
 	// Update agent stats
 	if ticket.AssignedToID != "" {
-		agentID, _ := primitive.ObjectIDFromHex(ticket.AssignedToID)
-		_ = u.agentRepo.DecrementTicketCount(ctx, agentID)
+		u.decrementAgentTicketCount(ctx, ticket.TenantID, ticket.AssignedToID)
 	}
 
 	// Update department stats
@@ -621,6 +676,20 @@ func (u *TicketUsecase) DeleteTicket(ctx context.Context, id string, deletedBy s
 }
 
 // Helper functions
+
+func (u *TicketUsecase) agentByAssigneeID(ctx context.Context, tenantID, assigneeUserID string) *models.Agent {
+	if assigneeUserID == "" {
+		return nil
+	}
+	agent, _ := u.agentRepo.GetByUserID(ctx, tenantID, assigneeUserID)
+	return agent
+}
+
+func (u *TicketUsecase) decrementAgentTicketCount(ctx context.Context, tenantID, assigneeUserID string) {
+	if agent := u.agentByAssigneeID(ctx, tenantID, assigneeUserID); agent != nil {
+		_ = u.agentRepo.DecrementTicketCount(ctx, agent.ID)
+	}
+}
 
 func (u *TicketUsecase) calculateSLA(ctx context.Context, ticket *models.Ticket) {
 	if !u.config.SLA.Enabled {

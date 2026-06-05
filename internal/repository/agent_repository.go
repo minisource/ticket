@@ -75,6 +75,56 @@ func (r *AgentRepository) GetByUserID(ctx context.Context, tenantID, userID stri
 	return &agent, nil
 }
 
+// GetByUserIDIncludeDeleted gets an agent by user ID, including soft-deleted records.
+func (r *AgentRepository) GetByUserIDIncludeDeleted(ctx context.Context, tenantID, userID string) (*models.Agent, error) {
+	var agent models.Agent
+	err := r.db.Collection(database.CollectionAgents).FindOne(ctx, bson.M{
+		"tenant_id": tenantID,
+		"user_id":   userID,
+	}).Decode(&agent)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get agent: %w", err)
+	}
+
+	return &agent, nil
+}
+
+// ReactivateAgent restores a soft-deleted agent and updates profile fields.
+func (r *AgentRepository) ReactivateAgent(ctx context.Context, id primitive.ObjectID, agent *models.Agent) error {
+	now := time.Now()
+	_, err := r.db.Collection(database.CollectionAgents).UpdateOne(
+		ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{
+			"name":           agent.Name,
+			"email":          agent.Email,
+			"phone":          agent.Phone,
+			"role":           agent.Role,
+			"skills":         agent.Skills,
+			"languages":      agent.Languages,
+			"max_tickets":    agent.MaxTickets,
+			"department_ids": agent.DepartmentIDs,
+			"preferences":    agent.Preferences,
+			"is_deleted":     false,
+			"deleted_at":     nil,
+			"is_active":      true,
+			"updated_at":     now,
+		}},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to reactivate agent: %w", err)
+	}
+	agent.ID = id
+	agent.IsDeleted = false
+	agent.IsActive = true
+	agent.UpdatedAt = now
+	return nil
+}
+
 // GetByEmail gets an agent by email
 func (r *AgentRepository) GetByEmail(ctx context.Context, tenantID, email string) (*models.Agent, error) {
 	var agent models.Agent

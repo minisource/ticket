@@ -14,6 +14,7 @@ import (
 	"github.com/minisource/ticket/api/v1/handlers"
 	"github.com/minisource/ticket/config"
 	_ "github.com/minisource/ticket/docs" // Swagger docs
+	"github.com/minisource/ticket/internal/client"
 	"github.com/minisource/ticket/internal/database"
 	"github.com/minisource/ticket/internal/repository"
 	"github.com/minisource/ticket/internal/usecase"
@@ -102,6 +103,8 @@ func main() {
 	slaRepo := repository.NewSLAPolicyRepository(db)
 	cannedRepo := repository.NewCannedResponseRepository(db)
 
+	notifierClient := client.NewServiceNotifier(cfg)
+
 	// Initialize usecases
 	ticketUsecase := usecase.NewTicketUsecase(
 		ticketRepo,
@@ -112,6 +115,7 @@ func main() {
 		agentRepo,
 		slaRepo,
 		cfg,
+		notifierClient,
 	)
 
 	departmentUsecase := usecase.NewDepartmentUsecase(

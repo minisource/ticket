@@ -42,14 +42,23 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 			return response.Unauthorized(c, translator.Translate(ctx, "error.invalid_token", nil))
 		}
 
+		userID := claims.UserID
+		if userID == "" {
+			userID = claims.ClientID
+		}
 		// Set user info in context
-		c.Locals("user_id", claims.ClientID)
+		c.Locals("user_id", userID)
+		c.Locals("roles", claims.Roles)
+		c.Locals("permissions", claims.Permissions)
 		c.Locals("service_name", claims.ServiceName)
 		c.Locals("scopes", claims.Scopes)
 
 		// Set headers for downstream handlers
-		if claims.ClientID != "" {
-			c.Request().Header.Set("X-User-ID", claims.ClientID)
+		if userID != "" {
+			c.Request().Header.Set("X-User-ID", userID)
+		}
+		if len(claims.Roles) > 0 {
+			c.Request().Header.Set("X-User-Roles", strings.Join(claims.Roles, ","))
 		}
 
 		return c.Next()
@@ -87,14 +96,19 @@ func OptionalAuthMiddleware(cfg *config.Config) fiber.Handler {
 			return c.Next()
 		}
 
+		userID := claims.UserID
+		if userID == "" {
+			userID = claims.ClientID
+		}
 		// Set user info in context
-		c.Locals("user_id", claims.ClientID)
+		c.Locals("user_id", userID)
+		c.Locals("roles", claims.Roles)
+		c.Locals("permissions", claims.Permissions)
 		c.Locals("service_name", claims.ServiceName)
 		c.Locals("scopes", claims.Scopes)
 
-		// Set headers for downstream handlers
-		if claims.ClientID != "" {
-			c.Request().Header.Set("X-User-ID", claims.ClientID)
+		if userID != "" {
+			c.Request().Header.Set("X-User-ID", userID)
 		}
 
 		return c.Next()
@@ -158,10 +172,10 @@ func RequirePermission(permissions ...string) fiber.Handler {
 
 // AgentMiddleware creates middleware that checks if user is an agent
 func AgentMiddleware() fiber.Handler {
-	return RequireRole("agent", "admin", "supervisor")
+	return RequireRole("agent", "admin", "supervisor", "super_admin")
 }
 
 // AdminMiddleware creates middleware that checks if user is an admin
 func AdminMiddleware() fiber.Handler {
-	return RequireRole("admin", "supervisor")
+	return RequireRole("admin", "supervisor", "super_admin")
 }

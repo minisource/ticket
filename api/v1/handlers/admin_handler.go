@@ -121,8 +121,12 @@ func (h *AdminHandler) ListAgents(c *fiber.Ctx) error {
 // UpdateAgentStatus updates an agent's status
 func (h *AdminHandler) UpdateAgentStatus(c *fiber.Ctx) error {
 	ctx := c.Context()
-	tenantID := c.Get("X-Tenant-ID")
-	userID := c.Params("id")
+	id := c.Params("id")
+
+	agent, err := h.adminUsecase.GetAgent(ctx, id)
+	if err != nil {
+		return response.NotFound(c, h.translator.Translate(ctx, "agent.not_found", nil))
+	}
 
 	var req struct {
 		Status string `json:"status"`
@@ -131,7 +135,7 @@ func (h *AdminHandler) UpdateAgentStatus(c *fiber.Ctx) error {
 		return response.BadRequest(c, "INVALID_REQUEST", h.translator.Translate(ctx, "error.invalid_request_body", nil))
 	}
 
-	err := h.adminUsecase.UpdateAgentStatus(ctx, tenantID, userID, models.AgentStatus(req.Status))
+	err = h.adminUsecase.UpdateAgentStatusForAgent(ctx, agent, models.AgentStatus(req.Status))
 	if err != nil {
 		return response.BadRequest(c, "UPDATE_FAILED", err.Error())
 	}
@@ -248,7 +252,7 @@ func (h *AdminHandler) AddAgentToDepartment(c *fiber.Ctx) error {
 func (h *AdminHandler) RemoveAgentFromDepartment(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
-	agentID := c.Params("agentId")
+	agentID := c.Params("agent_id")
 
 	err := h.departmentUsecase.RemoveAgentFromDepartment(ctx, id, agentID)
 	if err != nil {
